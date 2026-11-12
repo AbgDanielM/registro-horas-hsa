@@ -51,7 +51,8 @@ tr.today td:first-child{border-left:4px solid var(--accent)}
 tr.cut td{border-bottom:2px dashed var(--bad)}
 .d{font-weight:700;white-space:nowrap}
 .d small{display:block;font-weight:500;color:var(--muted);font-size:.72rem;text-transform:capitalize}
-input[type=time]{font:inherit;font-size:15px;padding:6px;border:1px solid var(--line);border-radius:8px;width:100%;min-width:0;background:#fff}
+input.hora{text-align:center;font-variant-numeric:tabular-nums;letter-spacing:.5px}
+input[type=time],input.hora{font:inherit;font-size:15px;padding:6px;border:1px solid var(--line);border-radius:8px;width:100%;min-width:0;background:#fff}
 input[type=text],input[type=number]{font:inherit;padding:7px 8px;border:1px solid var(--line);border-radius:8px;width:100%;background:#fff}
 .obs{font-size:.85rem}
 .h{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap;font-weight:600}
@@ -206,8 +207,8 @@ function render(){
       const btns = ult? `<div class="tbtns"><button data-act="add" data-d="${d}">+ Fila</button><button data-act="pam" data-d="${d}">Permiso AM</button><button data-act="ppm" data-d="${d}">Permiso PM</button></div>`:"";
       rows+=`<tr class="${c}" ${j?"":`id="d${d}"`}>
         <td class="c-d d">${d}<small>${DIAS[w]}</small>${!j&&fer?`<span class="tag" title="${esc(fa)}">FERIADO</span>`:""}${perm?`<span class="c-perm">P.ADM</span>`:""}</td>
-        <td class="c-i"><input type="time" data-d="${d}" data-j="${j}" data-k="i" value="${esc(x.i)}" aria-label="Inicio día ${d}"></td>
-        <td class="c-t"><input type="time" data-d="${d}" data-j="${j}" data-k="t" value="${esc(x.t)}" aria-label="Término día ${d}"></td>
+        <td class="c-i"><input type="text" class="hora" inputmode="numeric" maxlength="5" placeholder="--:--" autocomplete="off" data-d="${d}" data-j="${j}" data-k="i" value="${esc(x.i)}" aria-label="Inicio día ${d}"></td>
+        <td class="c-t"><input type="text" class="hora" inputmode="numeric" maxlength="5" placeholder="--:--" autocomplete="off" data-d="${d}" data-j="${j}" data-k="t" value="${esc(x.t)}" aria-label="Término día ${d}"></td>
         <td class="c-o"><input type="text" class="obs" list="obsl" data-d="${d}" data-j="${j}" data-k="o" value="${esc(x.o)}" placeholder="${!j&&fa?esc(fa):"Observación"}" aria-label="Observación día ${d}">${btns}</td>
         <td class="c-f">${j?`<button class="xbtn" data-act="del" data-d="${d}" data-j="${j}" aria-label="Quitar fila">Quitar</button>`:`<label class="fbox"><input type="checkbox" data-d="${d}" data-k="f" ${fer?"checked":""}> Feriado</label>`}</td>
         <td class="c-h h ${over&&r.cuenta?"over":""}">${r.real?toHM(r.cuenta):""}${r.real&&fer?`<small>${toHM(r.real)} × 1,25</small>`:""}${ult&&T.length>1&&R.real?`<small style="color:var(--muted)">Día: ${toHM(R.cuenta)}</small>`:""}</td>
@@ -281,6 +282,7 @@ function printHTML(C){
 function refresh(){
   const a=document.activeElement; const sel=a&&a.dataset&&(a.dataset.k&&a.dataset.k!=="f"?`[data-d="${a.dataset.d}"][data-j="${a.dataset.j}"][data-k="${a.dataset.k}"]`:a.dataset.p?`[data-p="${a.dataset.p}"]`:null);
   render();
+  if(nextFocus){const e=document.querySelector(nextFocus); nextFocus=null; if(e){e.focus(); return;}}
   if(sel){const e=document.querySelector(sel); if(e){e.focus(); if(e.type==="text"){try{const l=e.value.length;e.setSelectionRange(l,l);}catch(_){}}}}
 }
 
@@ -288,10 +290,35 @@ document.addEventListener("change",e=>{
   const t=e.target;
   if(t.dataset.d&&t.dataset.k){const d=+t.dataset.d, x=dia(d);
     if(t.dataset.k==="f"){const auto=!!feriadoAuto(Y,M,d); x.f = t.checked===auto?null:t.checked;}
-    else {const j=+t.dataset.j; while(x.tr.length<=j)x.tr.push({i:"",t:"",o:""}); x.tr[j][t.dataset.k]=t.value;}
+    else {const j=+t.dataset.j; while(x.tr.length<=j)x.tr.push({i:"",t:"",o:""});
+      let v=t.value; if(t.classList.contains("hora")){v=normHora(v); if(v===null){t.value=x.tr[j][t.dataset.k]||""; showNote("Escribe la hora en formato 24 horas, por ejemplo 08:30 o 17:00."); return;}}
+      x.tr[j][t.dataset.k]=v;}
     save(); refresh(); }
   else if(t.dataset.p){DB.perfil[t.dataset.p]= t.dataset.p==="tope"? Math.max(1,+t.value||180) : t.value.trim(); save(); refresh();}
 });
+// Acepta 830, 0830, 8:30, 8.30, 8 o 17 y lo deja como HH:MM (24 horas)
+function normHora(v){
+  v=(v||"").trim(); if(!v)return "";
+  let h,m; const parts=v.split(/[^0-9]+/).filter(Boolean);
+  if(parts.length===2&&/[^0-9]/.test(v)){h=+parts[0];m=+parts[1];}
+  else if(parts.length===1&&/^\d{1,4}$/.test(v)){ if(v.length<=2){h=+v;m=0;} else {h=+v.slice(0,v.length-2);m=+v.slice(-2);} }
+  else return null;
+  if(h>23||m>59)return null;
+  return String(h).padStart(2,"0")+":"+String(m).padStart(2,"0");
+}
+// Pone los dos puntos sola mientras se escribe
+document.addEventListener("input",e=>{const t=e.target; if(!t.classList||!t.classList.contains("hora"))return;
+  if(e.inputType&&e.inputType.startsWith("delete"))return;
+  if(/[^0-9:]/.test(t.value)){ t.value=t.value.replace(/[^0-9:]/g,":").replace(/:+/g,":"); }
+  const dig=t.value.replace(/\D/g,""); if(/^\d{3,4}$/.test(dig)&&!t.value.includes(":")){ t.value=dig.slice(0,dig.length-2)+":"+dig.slice(-2); }
+  else if(/^\d{2}$/.test(t.value)&&+t.value<=23){ t.value=t.value+":"; }
+});
+// Enter pasa al siguiente campo
+let nextFocus=null;
+const selDe = el=>`[data-d="${el.dataset.d}"][data-j="${el.dataset.j}"][data-k="${el.dataset.k}"]`;
+document.addEventListener("keydown",e=>{if(e.key==="Enter"&&e.target.classList&&e.target.classList.contains("hora")){e.preventDefault(); const all=[...document.querySelectorAll("input.hora")]; const n=all[all.indexOf(e.target)+1];
+  nextFocus = n? selDe(n) : null; e.target.blur();
+  setTimeout(()=>{ if(nextFocus){const el=document.querySelector(nextFocus); nextFocus=null; if(el)el.focus();} },0);}});
 function vacio(x){return !x.i&&!x.t&&!x.o;}
 document.addEventListener("click",e=>{
   const b=e.target.closest("[data-act]"); if(!b)return; const a=b.dataset.act; const d=+b.dataset.d;
