@@ -4,11 +4,16 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Registro de Horas HSA</title>
-<meta name="theme-color" content="#2f5d46">
+<meta name="theme-color" content="#24467e">
 <style>
-:root{--bg:#f3f1ea;--card:#fff;--ink:#1f2a24;--muted:#5f6b63;--line:#e2ded2;--accent:#2f5d46;--accent-soft:#e3eee7;--warn:#b7791f;--warn-soft:#fbf1dc;--bad:#b3372b;--bad-soft:#f9e3e0;--ok:#2f7a4a;--wk:#f6f4ee;--fer:#fdeee0}
+:root{--bg:#fbf6ea;--card:#fffdf8;--ink:#1b2540;--muted:#5b6580;--line:#e4dccb;--accent:#24467e;--accent-soft:#e3eaf5;--warn:#b7791f;--warn-soft:#fbf1dc;--bad:#b3372b;--bad-soft:#f9e3e0;--ok:#2f7a4a;--wk:#f5f1e6;--fer:#fdeee0}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+html.has-bg,html.has-bg body{background:transparent}
+.has-bg body::before{content:"";position:fixed;inset:0;z-index:-2;background:url("fondo.jpg") center/cover}
+.has-bg body::after{content:"";position:fixed;inset:0;z-index:-1;background:var(--bg);opacity:.35}
+.has-bg .card{box-shadow:0 4px 18px rgba(27,37,64,.12)}
+.has-bg header.top{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px 14px}
 .wrap{max-width:1100px;margin:0 auto;padding:16px}
 header.top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
 h1{font-size:1.25rem;margin:0}
@@ -41,7 +46,7 @@ th{font-size:.75rem;color:var(--muted);text-align:left;font-weight:600;padding:6
 td{padding:5px 4px;border-bottom:1px solid var(--line);vertical-align:middle}
 tr.wk td{background:var(--wk)}
 tr.fer td{background:var(--fer)}
-tr.today td{box-shadow:inset 0 0 0 9999px rgba(47,93,70,.07)}
+tr.today td{box-shadow:inset 0 0 0 9999px rgba(36,70,126,.07)}
 tr.today td:first-child{border-left:4px solid var(--accent)}
 tr.cut td{border-bottom:2px dashed var(--bad)}
 .d{font-weight:700;white-space:nowrap}
@@ -76,7 +81,7 @@ details summary{cursor:pointer;font-weight:600}
   table.days td.c-f{grid-area:f;justify-self:end}
   tr.wk,tr.fer,tr.today{border-radius:0}
   tr.wk{background:var(--wk)} tr.fer{background:var(--fer)}
-  tr.today{background:#e9f1ec}
+  tr.today{background:#e8eef8}
   tr.cut{border-bottom:2px dashed var(--bad)!important}
   table.days tr td{background:transparent!important;box-shadow:none!important}
   tr.today td:first-child{border-left:0}
@@ -113,6 +118,7 @@ tr.perm td .c-perm{display:inline-block;font-size:.65rem;background:var(--accent
 <div class="wrap" id="app"></div>
 <script>
 "use strict";
+(function(){const img=new Image();img.onload=()=>document.documentElement.classList.add("has-bg");img.src="fondo.jpg";})();
 const KEY = "registro-horas-hsa-v1";
 const MESES = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
 const DIAS = ["dom","lun","mar","mié","jue","vie","sáb"];
