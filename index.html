@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="es-CL">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Registro de Horas HSA</title>
+<meta name="theme-color" content="#2f5d46">
+<style>
+:root{--bg:#f3f1ea;--card:#fff;--ink:#1f2a24;--muted:#5f6b63;--line:#e2ded2;--accent:#2f5d46;--accent-soft:#e3eee7;--warn:#b7791f;--warn-soft:#fbf1dc;--bad:#b3372b;--bad-soft:#f9e3e0;--ok:#2f7a4a;--wk:#f6f4ee;--fer:#fdeee0}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.wrap{max-width:1100px;margin:0 auto;padding:16px}
+header.top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
+h1{font-size:1.25rem;margin:0}
+.sub{color:var(--muted);font-size:.85rem}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:12px}
+.month{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.month h2{margin:0;font-size:1.2rem;text-transform:capitalize;text-align:center;flex:1}
+button{font:inherit;cursor:pointer;border-radius:10px;border:1px solid var(--line);background:#fff;color:var(--ink);padding:8px 12px}
+button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+button.ghost{background:transparent}
+button:disabled{opacity:.4;cursor:default}
+.row-btns{display:flex;gap:8px;flex-wrap:wrap}
+.sum{display:grid;gap:10px}
+.big{font-size:2rem;font-weight:700;line-height:1}
+.big small{font-size:1rem;color:var(--muted);font-weight:500}
+.bar{height:14px;background:#ece8dc;border-radius:99px;overflow:hidden;position:relative}
+.bar>i{display:block;height:100%;background:var(--accent);border-radius:99px;transition:width .3s}
+.bar.warn>i{background:var(--warn)}
+.bar.over>i{background:var(--bad)}
+.msg{padding:10px 12px;border-radius:10px;font-size:.95rem}
+.msg.ok{background:var(--accent-soft)}
+.msg.warn{background:var(--warn-soft)}
+.msg.bad{background:var(--bad-soft);color:#7a2219}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center}
+.stats div{background:var(--wk);border-radius:10px;padding:8px 4px}
+.stats b{display:block;font-size:1.15rem}
+.stats span{font-size:.75rem;color:var(--muted)}
+table{width:100%;border-collapse:collapse}
+th{font-size:.75rem;color:var(--muted);text-align:left;font-weight:600;padding:6px 4px;border-bottom:1px solid var(--line)}
+td{padding:5px 4px;border-bottom:1px solid var(--line);vertical-align:middle}
+tr.wk td{background:var(--wk)}
+tr.fer td{background:var(--fer)}
+tr.today td{box-shadow:inset 0 0 0 9999px rgba(47,93,70,.07)}
+tr.today td:first-child{border-left:4px solid var(--accent)}
+tr.cut td{border-bottom:2px dashed var(--bad)}
+.d{font-weight:700;white-space:nowrap}
+.d small{display:block;font-weight:500;color:var(--muted);font-size:.72rem;text-transform:capitalize}
+input[type=time]{font:inherit;font-size:15px;padding:6px;border:1px solid var(--line);border-radius:8px;width:100%;min-width:0;background:#fff}
+input[type=text],input[type=number]{font:inherit;padding:7px 8px;border:1px solid var(--line);border-radius:8px;width:100%;background:#fff}
+.obs{font-size:.85rem}
+.h{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap;font-weight:600}
+.h small{display:block;font-weight:500;color:var(--warn);font-size:.7rem}
+.h.over{color:var(--bad)}
+.fbox{display:flex;align-items:center;gap:4px;font-size:.75rem;color:var(--muted);white-space:nowrap}
+.tag{display:inline-block;font-size:.65rem;background:var(--warn);color:#fff;border-radius:6px;padding:1px 5px;margin-top:2px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+label.f{display:block;font-size:.8rem;color:var(--muted)}
+label.f input{margin-top:3px;color:var(--ink)}
+details summary{cursor:pointer;font-weight:600}
+.foot{color:var(--muted);font-size:.78rem;text-align:center;margin:18px 0 30px}
+.punch{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.punch button{padding:12px}
+@media (max-width:640px){
+  .wrap{padding:10px}
+  .grid2{grid-template-columns:1fr}
+  table.days thead{display:none}
+  table.days,table.days tbody{display:block}
+  table.days tr{display:grid;grid-template-columns:44px minmax(0,1fr) minmax(0,1fr) 58px;grid-template-areas:"d i t h" "d o o f";gap:4px 6px;padding:8px 6px;border-bottom:1px solid var(--line)}
+  table.days td{border:0;padding:0}
+  table.days td.c-d{grid-area:d}
+  table.days td.c-i{grid-area:i}
+  table.days td.c-t{grid-area:t}
+  table.days td.c-h{grid-area:h;align-self:center}
+  table.days td.c-o{grid-area:o}
+  table.days td.c-f{grid-area:f;justify-self:end}
+  tr.wk,tr.fer,tr.today{border-radius:0}
+  tr.wk{background:var(--wk)} tr.fer{background:var(--fer)}
+  tr.today{background:#e9f1ec}
+  tr.cut{border-bottom:2px dashed var(--bad)!important}
+  table.days tr td{background:transparent!important;box-shadow:none!important}
+  tr.today td:first-child{border-left:0}
+}
+@media (min-width:900px){
+  .layout{display:grid;grid-template-columns:330px 1fr;gap:14px;align-items:start}
+  .side{position:sticky;top:12px}
+}
+tr.sub td.c-d{color:transparent}
+.tbtns{display:flex;gap:12px;margin-top:3px;white-space:nowrap}
+.tbtns button{font-size:.72rem;padding:0;border:0;background:none;color:var(--accent);text-decoration:underline;text-underline-offset:2px}
+.xbtn{font-size:.72rem;padding:3px 7px;border-radius:7px}
+.xbtn{color:var(--bad);border-color:transparent;background:transparent}
+tr.perm td .c-perm{display:inline-block;font-size:.65rem;background:var(--accent);color:#fff;border-radius:6px;padding:1px 5px;margin-top:2px}
+/* impresión */
+.print{display:none}
+@media print{
+  @page{size:A4 portrait;margin:12mm}
+  body{background:#fff}
+  .wrap>*:not(.print){display:none!important}
+  .print{display:block;font:10.5pt/1.3 Arial,sans-serif;color:#000}
+  .print h3{text-align:center;font-size:12pt;margin:6px 0 10px}
+  .print table{border-collapse:collapse;width:100%}
+  .print td,.print th{border:1px solid #000;padding:2px 4px;font-size:9.5pt;color:#000}
+  .print th{background:#eee;text-align:center}
+  .print .hd td{border:0;padding:1px 4px}
+  .print .num{text-align:center}
+  .print .firmas{display:flex;justify-content:space-between;margin-top:46px;text-align:center}
+  .print .firmas div{width:30%;border-top:1px solid #000;padding-top:4px;font-size:9pt}
+}
+</style>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+<script>
+"use strict";
+const KEY = "registro-horas-hsa-v1";
+const MESES = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
+const DIAS = ["dom","lun","mar","mié","jue","vie","sáb"];
+const FACTOR = 1.25;
+// Feriados nacionales (Chile). Se pueden marcar o desmarcar a mano en cada día.
+const FERIADOS = {
+  2026:{"1-1":"Año Nuevo","4-3":"Viernes Santo","4-4":"Sábado Santo","5-1":"Día del Trabajo","5-21":"Glorias Navales","6-21":"Pueblos Indígenas","6-29":"San Pedro y San Pablo","7-16":"Virgen del Carmen","8-15":"Asunción de la Virgen","9-18":"Independencia","9-19":"Glorias del Ejército","10-12":"Encuentro de Dos Mundos","10-31":"Iglesias Evangélicas","11-1":"Todos los Santos","12-8":"Inmaculada Concepción","12-25":"Navidad"},
+  2027:{"1-1":"Año Nuevo","3-26":"Viernes Santo","3-27":"Sábado Santo","5-1":"Día del Trabajo","5-21":"Glorias Navales","6-21":"Pueblos Indígenas","6-28":"San Pedro y San Pablo","7-16":"Virgen del Carmen","8-15":"Asunción de la Virgen","9-17":"Feriado Fiestas Patrias","9-18":"Independencia","9-19":"Glorias del Ejército","10-11":"Encuentro de Dos Mundos","10-31":"Iglesias Evangélicas","11-1":"Todos los Santos","12-8":"Inmaculada Concepción","12-25":"Navidad"}
+};
+const OBS = ["P. ADM. AM","P. ADM. PM","FERIADO","VACACIONES","LICENCIA","COMETIDO","CAPACITACIÓN"];
+// Permiso administrativo: AM 08:00-12:30 / PM 12:30-17:00 (lunes a jueves); viernes AM 08:00-12:00 / PM 12:00-16:00
+function permisoHoras(d,tipo){const vie=new Date(Y,M,d).getDay()===5; const mid=vie?"12:00":"12:30";
+  return tipo==="AM"?{i:"08:00",t:mid}:{i:mid,t:vie?"16:00":"17:00"};}
+
+function migrar(db){ // versión anterior: un solo tramo por día
+  for(const k in db.meses){const ds=db.meses[k].dias; for(const d in ds){const x=ds[d]; if(!x.tr){ds[d]={tr:[{i:x.i||"",t:x.t||"",o:x.o||""}],f:x.f??null};}}}
+  return db;
+}
+function load(){try{const d=JSON.parse(localStorage.getItem(KEY));if(d&&d.meses)return migrar(d);}catch(e){}return {perfil:{nombre:"",rut:"",proyecto:"",subp:"",pesp:"",esc:"HONORARIOS",grado:"",tope:180},meses:{}};}
+let DB = load();
+function save(){try{localStorage.setItem(KEY,JSON.stringify(DB));}catch(e){}}
+
+const now = new Date();
+let Y = now.getFullYear(), M = now.getMonth(); // mes abierto: el presente
+const mk = (y,m)=>y+"-"+String(m+1).padStart(2,"0");
+function mes(){const k=mk(Y,M);if(!DB.meses[k])DB.meses[k]={dias:{}};return DB.meses[k];}
+function dia(d){const m=mes();if(!m.dias[d])m.dias[d]={tr:[{i:"",t:"",o:""}],f:null};if(!m.dias[d].tr.length)m.dias[d].tr.push({i:"",t:"",o:""});return m.dias[d];}
+const tramos = d=>{const x=mes().dias[d];return x&&x.tr&&x.tr.length?x.tr:[{i:"",t:"",o:""}];};
+function feriadoAuto(y,m,d){const t=FERIADOS[y];return t?(t[(m+1)+"-"+d]||""):"";}
+function esFeriado(d){const x=(mes().dias[d]||{}).f;return x===null||x===undefined?!!feriadoAuto(Y,M,d):x;}
+const nDias = (y,m)=>new Date(y,m+1,0).getDate();
+const toMin = s=>{if(!s)return null;const [h,m]=s.split(":").map(Number);return h*60+m;};
+const toHM = m=>{if(m==null||isNaN(m))return "";const neg=m<0;m=Math.round(Math.abs(m));return (neg?"-":"")+Math.floor(m/60)+":"+String(m%60).padStart(2,"0");};
+const hhmm = m=>{m=((Math.round(m)%1440)+1440)%1440;return String(Math.floor(m/60)).padStart(2,"0")+":"+String(m%60).padStart(2,"0");};
+const esc = s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const esPermiso = o=>/P(ERM(ISO)?)?\.?\s*ADM/i.test(o||"");
+
+function minTramo(x){const a=toMin(x.i),b=toMin(x.t); if(a==null||b==null)return 0; let r=b-a; if(r<0)r+=1440; return r;}
+function calc(){
+  const n=nDias(Y,M), tope=(+DB.perfil.tope||180)*60;
+  let tot=0, corte=null; const por={};
+  for(let d=1;d<=n;d++){
+    const f=esFeriado(d)?FACTOR:1; let real=0, cuenta=0; const tr=[];
+    tramos(d).forEach((x,j)=>{
+      const r=minTramo(x), c=r*f; tr.push({real:r,cuenta:c});
+      if(corte==null && c>0 && tot+c>tope){const falta=tope-tot; corte={dia:d, tramo:j, hora: hhmm(toMin(x.i)+falta/f)};}
+      tot+=c; real+=r; cuenta+=c;
+    });
+    por[d]={real,cuenta,tr};
+  }
+  return {tot, tope, por, corte, extra: Math.max(0,tot-tope), resta: Math.max(0,tope-tot)};
+}
+function habilesRestantes(C){
+  const n=nDias(Y,M); let c=0;
+  const esActual = Y===now.getFullYear()&&M===now.getMonth();
+  const desde = esActual? now.getDate()+1 : (new Date(Y,M,1)>now?1:n+1);
+  for(let d=desde; d<=n; d++){const w=new Date(Y,M,d).getDay(); if(w>0&&w<6&&!esFeriado(d)&&!C.por[d].real)c++;}
+  return c;
+}
+
+function render(){
+  const n=nDias(Y,M), C=calc(), P=DB.perfil;
+  const pct=Math.min(100,C.tot/C.tope*100);
+  const cls = C.extra>0?"over":(pct>=90?"warn":"");
+  const hr=habilesRestantes(C);
+  let msg;
+  if(C.extra>0) msg=`<div class="msg bad"><b>Te pasaste del tope.</b> Llevas <b>${toHM(C.extra)}</b> h en horas extras. Llegaste a las ${P.tope||180} h el día <b>${C.corte.dia}</b> a las <b>${C.corte.hora}</b>; desde ahí corre como hora extra.</div>`;
+  else if(C.resta===0) msg=`<div class="msg warn"><b>Llegaste justo al tope.</b> Desde ahora, todo lo que trabajes este mes es hora extra.</div>`;
+  else if(pct>=90) msg=`<div class="msg warn"><b>Ojo, te queda poco:</b> ${toHM(C.resta)} h antes de entrar en horas extras.${hr?` Te quedan ${hr} días hábiles sin registrar (≈ ${toHM(C.resta/hr)} h por día).`:""}</div>`;
+  else msg=`<div class="msg ok">Te quedan <b>${toHM(C.resta)}</b> h para llegar al tope.${hr?` Te quedan ${hr} días hábiles sin registrar, o sea ≈ <b>${toHM(C.resta/hr)}</b> h por día para no pasarte.`:""}</div>`;
+
+  const esActual = Y===now.getFullYear()&&M===now.getMonth();
+  const hoy=now.getDate();
+  const ultHoy = esActual? tramos(hoy)[tramos(hoy).length-1] : {};
+  const punch = esActual? `<div class="card"><div class="sub" style="margin-bottom:8px">Hoy, ${DIAS[now.getDay()]} ${String(hoy).padStart(2,"0")}/${String(M+1).padStart(2,"0")}/${Y}</div>
+    <div class="punch"><button class="primary" data-act="in">Marcar entrada${ultHoy.i&&!ultHoy.t?`<br><small>${ultHoy.i}</small>`:""}</button><button class="primary" data-act="out">Marcar salida${ultHoy.t?`<br><small>${ultHoy.t}</small>`:""}</button></div></div>`:"";
+
+  let rows="";
+  for(let d=1;d<=n;d++){
+    const w=new Date(Y,M,d).getDay(), fer=esFeriado(d), fa=feriadoAuto(Y,M,d), T=tramos(d), R=C.por[d];
+    T.forEach((x,j)=>{
+      const r=R.tr[j], ult=j===T.length-1, perm=esPermiso(x.o);
+      const over = C.corte && (d>C.corte.dia || (d===C.corte.dia && j>=C.corte.tramo));
+      const c=[j?"sub":"", w===0||w===6?"wk":"", fer?"fer":"", perm?"perm":"", esActual&&d===hoy?"today":"", C.corte&&d===C.corte.dia&&j===C.corte.tramo?"cut":""].join(" ");
+      const btns = ult? `<div class="tbtns"><button data-act="add" data-d="${d}">+ Fila</button><button data-act="pam" data-d="${d}">Permiso AM</button><button data-act="ppm" data-d="${d}">Permiso PM</button></div>`:"";
+      rows+=`<tr class="${c}" ${j?"":`id="d${d}"`}>
+        <td class="c-d d">${d}<small>${DIAS[w]}</small>${!j&&fer?`<span class="tag" title="${esc(fa)}">FERIADO</span>`:""}${perm?`<span class="c-perm">P.ADM</span>`:""}</td>
+        <td class="c-i"><input type="time" data-d="${d}" data-j="${j}" data-k="i" value="${esc(x.i)}" aria-label="Inicio día ${d}"></td>
+        <td class="c-t"><input type="time" data-d="${d}" data-j="${j}" data-k="t" value="${esc(x.t)}" aria-label="Término día ${d}"></td>
+        <td class="c-o"><input type="text" class="obs" list="obsl" data-d="${d}" data-j="${j}" data-k="o" value="${esc(x.o)}" placeholder="${!j&&fa?esc(fa):"Observación"}" aria-label="Observación día ${d}">${btns}</td>
+        <td class="c-f">${j?`<button class="xbtn" data-act="del" data-d="${d}" data-j="${j}" aria-label="Quitar fila">Quitar</button>`:`<label class="fbox"><input type="checkbox" data-d="${d}" data-k="f" ${fer?"checked":""}> Feriado</label>`}</td>
+        <td class="c-h h ${over&&r.cuenta?"over":""}">${r.real?toHM(r.cuenta):""}${r.real&&fer?`<small>${toHM(r.real)} × 1,25</small>`:""}${ult&&T.length>1&&R.real?`<small style="color:var(--muted)">Día: ${toHM(R.cuenta)}</small>`:""}</td>
+      </tr>`;
+    });
+  }
+
+  document.getElementById("app").innerHTML = `
+  <header class="top"><div><h1>Registro de Horas HSA</h1><div class="sub">${P.nombre?esc(P.nombre):"Registro mensual de asistencia"}</div></div>
+    <button class="ghost" data-act="print">Imprimir / PDF</button></header>
+  <div class="layout">
+   <div class="side">
+    <div class="card month"><button data-act="prev" aria-label="Mes anterior">‹</button><h2>${MESES[M]} ${Y}</h2><button data-act="next" aria-label="Mes siguiente">›</button></div>
+    ${!esActual?`<div style="margin:-4px 0 12px;text-align:center"><button class="ghost" data-act="hoy">Volver al mes actual</button></div>`:""}
+    <div class="card sum">
+      <div class="big">${toHM(C.tot)||"0:00"} <small>de ${P.tope||180}:00 h</small></div>
+      <div class="bar ${cls}"><i style="width:${pct}%"></i></div>
+      ${msg}
+      <div class="stats"><div><b>${toHM(C.tot)||"0:00"}</b><span>Total mes</span></div><div><b>${toHM(C.resta)}</b><span>Disponible</span></div><div><b style="color:${C.extra?"var(--bad)":"inherit"}">${toHM(C.extra)}</b><span>Horas extras</span></div></div>
+    </div>
+    ${punch}
+    <div class="card"><details ${P.nombre?"":"open"}><summary>Mis datos</summary>
+      <div class="grid2" style="margin-top:10px">
+        <label class="f">Nombre<input type="text" data-p="nombre" value="${esc(P.nombre)}"></label>
+        <label class="f">RUT<input type="text" data-p="rut" value="${esc(P.rut)}" placeholder="12.345.678-9"></label>
+        <label class="f">Proyecto<input type="text" data-p="proyecto" value="${esc(P.proyecto)}" placeholder="PROGRAMA ..."></label>
+        <label class="f">Escalafón<input type="text" data-p="esc" value="${esc(P.esc)}"></label>
+        <label class="f">SUBP<input type="text" data-p="subp" value="${esc(P.subp)}"></label>
+        <label class="f">P. ESP.<input type="text" data-p="pesp" value="${esc(P.pesp)}"></label>
+        <label class="f">Grado<input type="text" data-p="grado" value="${esc(P.grado)}"></label>
+        <label class="f">Tope mensual (horas)<input type="number" min="1" step="1" data-p="tope" value="${esc(P.tope||180)}"></label>
+      </div>
+      <p class="sub" style="margin:10px 0 0">Los datos quedan guardados solo en este dispositivo.</p>
+      <div class="row-btns" style="margin-top:10px"><button data-act="exp">Descargar respaldo</button><button data-act="imp">Cargar respaldo</button></div>
+    </details></div>
+   </div>
+   <div class="card" style="padding:8px 10px">
+    <table class="days"><thead><tr><th>Día</th><th>Inicio</th><th>Término</th><th>Observación</th><th></th><th style="text-align:right">N° horas</th></tr></thead><tbody>${rows}</tbody></table>
+    <datalist id="obsl">${OBS.map(o=>`<option value="${o}">`).join("")}</datalist>
+    <p class="sub" style="margin:10px 4px 4px">Los días marcados como feriado cuentan × 1,25. Puedes marcar o desmarcar un feriado a mano si no corresponde.<br>
+    <b>Permiso administrativo:</b> el botón agrega una fila con el horario del permiso (AM 08:00 a 12:30 y PM 12:30 a 17:00; el viernes AM 08:00 a 12:00 y PM 12:00 a 16:00). En otra fila del mismo día se anota la entrada y salida efectiva. Con <b>+ Fila</b> puedes anotar más de un horario en un mismo día.</p>
+   </div>
+  </div>
+  <div class="foot">Herramienta independiente para llevar el registro personal de horas. No es un sistema oficial del SAG.</div>
+  ${printHTML(C)}`;
+}
+
+function printHTML(C){
+  const P=DB.perfil, n=nDias(Y,M);
+  let r="", filas=0;
+  for(let d=1;d<=n;d++){
+    const fer=esFeriado(d), T=tramos(d);
+    T.forEach((x,j)=>{filas++; const m=C.por[d].tr[j];
+      r+=`<tr><td class="num">${d}</td><td class="num">${esc(P.subp)}</td><td class="num">${esc(P.pesp)}</td><td class="num">${esc(x.i||"")}</td><td class="num">${esc(x.t||"")}</td><td>${esc(x.o||(fer&&!j?"FERIADO":""))}</td><td class="num">${m.real?toHM(m.cuenta):""}</td></tr>`;});
+  }
+  const fs = filas>34? "font-size:8pt" : "";
+  return `<div class="print">
+   <table class="hd"><tr><td></td><td style="text-align:right;width:45%"><b>MES:</b> ${MESES[M].toUpperCase()} &nbsp; <b>AÑO:</b> ${Y}</td></tr></table>
+   <h3>REGISTRO MENSUAL ASISTENCIA HSA - REMUNERACIÓN</h3>
+   <table class="hd">
+    <tr><td style="width:15%"><b>NOMBRE</b></td><td>${esc(P.nombre)}</td><td style="width:12%"><b>ESC:</b></td><td style="width:18%">${esc(P.esc)}</td></tr>
+    <tr><td><b>RUT N°:</b></td><td>${esc(P.rut)}</td><td><b>GRADO</b></td><td>${esc(P.grado)}</td></tr>
+    <tr><td><b>PROYECTO:</b></td><td colspan="3">${esc(P.proyecto)}</td></tr>
+   </table><br>
+   <table style="${fs}"><thead><tr><th style="width:7%">DÍA</th><th style="width:8%">SUBP</th><th style="width:9%">P.ESP</th><th style="width:12%">INICIO</th><th style="width:12%">TÉRMINO</th><th>OBSERVACIÓN</th><th style="width:13%">N° DE HORAS</th></tr></thead>
+   <tbody>${r}<tr><td colspan="6" style="text-align:right"><b>TOTAL</b></td><td class="num"><b>${toHM(C.tot)||"0:00"}</b></td></tr></tbody></table>
+   <div class="firmas"><div>FIRMA FUNCIONARIO</div><div>FIRMA JEFE ADM. Y FINANZAS</div><div>FIRMA JEFE DE OFICINA</div></div>
+  </div>`;
+}
+
+function refresh(){
+  const a=document.activeElement; const sel=a&&a.dataset&&(a.dataset.k&&a.dataset.k!=="f"?`[data-d="${a.dataset.d}"][data-j="${a.dataset.j}"][data-k="${a.dataset.k}"]`:a.dataset.p?`[data-p="${a.dataset.p}"]`:null);
+  render();
+  if(sel){const e=document.querySelector(sel); if(e){e.focus(); if(e.type==="text"){try{const l=e.value.length;e.setSelectionRange(l,l);}catch(_){}}}}
+}
+
+document.addEventListener("change",e=>{
+  const t=e.target;
+  if(t.dataset.d&&t.dataset.k){const d=+t.dataset.d, x=dia(d);
+    if(t.dataset.k==="f"){const auto=!!feriadoAuto(Y,M,d); x.f = t.checked===auto?null:t.checked;}
+    else {const j=+t.dataset.j; while(x.tr.length<=j)x.tr.push({i:"",t:"",o:""}); x.tr[j][t.dataset.k]=t.value;}
+    save(); refresh(); }
+  else if(t.dataset.p){DB.perfil[t.dataset.p]= t.dataset.p==="tope"? Math.max(1,+t.value||180) : t.value.trim(); save(); refresh();}
+});
+function vacio(x){return !x.i&&!x.t&&!x.o;}
+document.addEventListener("click",e=>{
+  const b=e.target.closest("[data-act]"); if(!b)return; const a=b.dataset.act; const d=+b.dataset.d;
+  if(a==="prev"){M--; if(M<0){M=11;Y--;} render();}
+  else if(a==="next"){M++; if(M>11){M=0;Y++;} render();}
+  else if(a==="hoy"){Y=now.getFullYear();M=now.getMonth();render();}
+  else if(a==="print"){window.print();}
+  else if(a==="add"){dia(d).tr.push({i:"",t:"",o:""}); save(); render(); const e2=document.querySelector(`[data-d="${d}"][data-j="${dia(d).tr.length-1}"][data-k="i"]`); if(e2)e2.focus();}
+  else if(a==="del"){const x=dia(d); x.tr.splice(+b.dataset.j,1); save(); render();}
+  else if(a==="pam"||a==="ppm"){
+    const tipo=a==="pam"?"AM":"PM", h=permisoHoras(d,tipo), x=dia(d);
+    const fila={i:h.i,t:h.t,o:"P. ADM. "+tipo};
+    const libre=x.tr.findIndex(vacio);
+    if(libre>=0) x.tr[libre]=fila; else x.tr.push(fila);
+    // el permiso AM va primero y el PM al final, como en la hoja
+    x.tr.sort((p,q)=>(toMin(p.i)??9999)-(toMin(q.i)??9999));
+    save(); render();
+  }
+  else if(a==="in"||a==="out"){const t=new Date(), hd=t.getDate(), x=dia(hd), hm=hhmm(t.getHours()*60+t.getMinutes());
+    let u=x.tr[x.tr.length-1];
+    if(a==="in"){ if(u.i||u.t){u={i:"",t:"",o:""}; x.tr.push(u);} u.i=hm; }
+    else { const abierta=[...x.tr].reverse().find(r=>r.i&&!r.t&&!esPermiso(r.o)); if(abierta) abierta.t=hm; else { if(u.t||esPermiso(u.o)){u={i:"",t:"",o:""}; x.tr.push(u);} u.t=hm; } }
+    save(); render();}
+  else if(a==="exp"){const blob=new Blob([JSON.stringify(DB,null,1)],{type:"application/json"}); const u=URL.createObjectURL(blob); const l=document.createElement("a"); l.href=u; l.download="respaldo-horas-hsa.json"; document.body.appendChild(l); l.click(); l.remove(); setTimeout(()=>URL.revokeObjectURL(u),2000);}
+  else if(a==="imp"){const i=document.createElement("input"); i.type="file"; i.accept=".json,application/json"; i.onchange=()=>{const f=i.files[0]; if(!f)return; f.text().then(s=>{try{const dd=JSON.parse(s); if(!dd.meses||!dd.perfil)throw 0; DB=migrar(dd); save(); render();}catch(_){showNote("Ese archivo no es un respaldo válido.");}});}; i.click();}
+});
+function showNote(t){const d=document.createElement("div");d.className="msg bad";d.style.cssText="position:fixed;left:50%;bottom:20px;transform:translateX(-50%);z-index:9";d.textContent=t;document.body.appendChild(d);setTimeout(()=>d.remove(),3500);}
+
+// Si el mes cambia mientras la página está abierta (p. ej. de 31 a 1), se abre el nuevo mes
+setInterval(()=>{const t=new Date(); if(t.getMonth()!==now.getMonth()||t.getFullYear()!==now.getFullYear()){location.reload();}},60000);
+
+render();
+if(Y===now.getFullYear()&&M===now.getMonth()){const r=document.getElementById("d"+now.getDate()); if(r&&now.getDate()>5) setTimeout(()=>r.scrollIntoView({block:"center"}),50);}
+</script>
+</body>
+</html>
