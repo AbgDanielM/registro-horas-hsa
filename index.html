@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Registro de Horas HSA</title>
 <meta name="theme-color" content="#24467e">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="favicon.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
 <style>
 :root{--bg:#fbf6ea;--card:#fffdf8;--ink:#1b2540;--muted:#5b6580;--line:#e4dccb;--accent:#24467e;--accent-soft:#e3eaf5;--warn:#b7791f;--warn-soft:#fbf1dc;--bad:#b3372b;--bad-soft:#f9e3e0;--ok:#2f7a4a;--wk:#f5f1e6;--fer:#fdeee0}
 *{box-sizing:border-box}
@@ -218,7 +222,7 @@ function render(){
 
   document.getElementById("app").innerHTML = `
   <header class="top"><div><h1>Registro de Horas HSA</h1><div class="sub">${P.nombre?esc(P.nombre):"Registro mensual de asistencia"}</div></div>
-    <button class="ghost" data-act="print">Imprimir / PDF</button></header>
+    <div class="row-btns"><button class="primary" id="btnInstalar" ${instalar?"":"hidden"}>Instalar app</button><button class="ghost" data-act="print">Imprimir / PDF</button></div></header>
   <div class="layout">
    <div class="side">
     <div class="card month"><button data-act="prev" aria-label="Mes anterior">‹</button><h2>${MESES[M]} ${Y}</h2><button data-act="next" aria-label="Mes siguiente">›</button></div>
@@ -350,6 +354,11 @@ function showNote(t){const d=document.createElement("div");d.className="msg bad"
 // Si el mes cambia mientras la página está abierta (p. ej. de 31 a 1), se abre el nuevo mes
 setInterval(()=>{const t=new Date(); if(t.getMonth()!==now.getMonth()||t.getFullYear()!==now.getFullYear()){location.reload();}},60000);
 
+if("serviceWorker" in navigator && location.protocol==="https:"){navigator.serviceWorker.register("sw.js").catch(()=>{});}
+// Botón para instalar como app (Android / Chrome)
+let instalar=null;
+window.addEventListener("beforeinstallprompt",e=>{e.preventDefault(); instalar=e; const b=document.getElementById("btnInstalar"); if(b)b.hidden=false;});
+document.addEventListener("click",e=>{if(e.target.id==="btnInstalar"&&instalar){instalar.prompt(); instalar.userChoice.finally(()=>{instalar=null; e.target.hidden=true;});}});
 render();
 if(Y===now.getFullYear()&&M===now.getMonth()){const r=document.getElementById("d"+now.getDate()); if(r&&now.getDate()>5) setTimeout(()=>r.scrollIntoView({block:"center"}),50);}
 </script>

@@ -1,0 +1,17 @@
+{
+  "name": "Registro de Horas HSA",
+  "short_name": "Horas HSA",
+  "description": "Registro mensual de horas con tope de 180 h, feriados × 1,25 y permisos administrativos.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#fbf6ea",
+  "theme_color": "#24467e",
+  "lang": "es-CL",
+  "icons": [
+    {"src": "icon-192.png", "sizes": "192x192", "type": "image/png"},
+    {"src": "icon-512.png", "sizes": "512x512", "type": "image/png"},
+    {"src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+  ]
+}
